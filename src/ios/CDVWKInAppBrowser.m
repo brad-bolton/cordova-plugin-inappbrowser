@@ -93,7 +93,8 @@ static UIBarButtonSystemItem CDVWKInAppBrowserCloseButtonSystemItem(void)
     NSString *url = [command argumentAtIndex:0];
     NSString *target = [command argumentAtIndex:1 withDefault:kInAppBrowserTargetSelf];
     NSString *options = [command argumentAtIndex:2 withDefault:@"" andClass:[NSString class]];
-
+    NSString* headers = [command argumentAtIndex:3 withDefault:@"" andClass:[NSString class]];
+   
     if (url != nil) {
         NSURL *absoluteUrl = [[NSURL URLWithString:url
                                      relativeToURL:[self.webViewEngine URL]] absoluteURL];
@@ -104,7 +105,7 @@ static UIBarButtonSystemItem CDVWKInAppBrowserCloseButtonSystemItem(void)
 
         // target=_self - Open in Cordova WebView
         if ([target isEqualToString:kInAppBrowserTargetSelf]) {
-            [self openInCordovaWebView:absoluteUrl withOptions:options];
+            [self openInCordovaWebView:absoluteUrl withOptions:options  withHeaders:headers];
             
             // target=_system - Open external
         } else if ([target isEqualToString:kInAppBrowserTargetSystem]) {
@@ -116,7 +117,7 @@ static UIBarButtonSystemItem CDVWKInAppBrowserCloseButtonSystemItem(void)
             // Don't set or overwrite it when target _system or _self is called, cause this will
             // not invoke an in-app browser instance
             self.callbackId = command.callbackId;
-            [self openInInAppBrowser:absoluteUrl withOptions:options];
+            [self openInInAppBrowser:absoluteUrl withOptions:options withHeaders:headers];
         }
 
         pluginResult = [CDVPluginResult resultWithStatus:CDVCommandStatus_OK];
@@ -128,7 +129,7 @@ static UIBarButtonSystemItem CDVWKInAppBrowserCloseButtonSystemItem(void)
     [self.commandDelegate sendPluginResult:pluginResult callbackId:command.callbackId];
 }
 
-- (void)openInInAppBrowser:(NSURL *)url withOptions:(NSString *)options
+- (void)openInInAppBrowser:(NSURL *)url withOptions:(NSString *)options withHeaders:(NSString*)headers
 {
     CDVInAppBrowserOptions *browserOptions = [CDVInAppBrowserOptions parseOptions:options];
 
@@ -194,7 +195,7 @@ static UIBarButtonSystemItem CDVWKInAppBrowserCloseButtonSystemItem(void)
             return;
         }
 
-        [strongSelf.inAppBrowserViewController navigateTo:url];
+        [strongSelf.inAppBrowserViewController navigateTo:url headers:headers];
         if (!browserOptions.hidden) {
             [strongSelf show:nil withNoAnimate:browserOptions.hidden];
         }
@@ -1209,11 +1210,18 @@ BOOL isExiting = NO;
     });
 }
 
-- (void)navigateTo:(NSURL *)url
+- (void)navigateTo:(NSURL *)url headers:(NSString*)headers
 {
     if ([url.scheme isEqualToString:@"file"]) {
         [self.webView loadFileURL:url allowingReadAccessToURL:url];
     } else {
+        NSArray* pairs = [headers componentsSeparatedByString:@","];
+         for (NSString* pair in pairs) {
+        NSArray* keyvalue = [pair componentsSeparatedByString:@":"];
+        NSString* key = [[keyvalue objectAtIndex:0] lowercaseString];
+        NSString* value = [keyvalue objectAtIndex:1];
+        [request setValue:value forHTTPHeaderField:key];
+    }
         NSURLRequest *request = [NSURLRequest requestWithURL:url];
         [self.webView loadRequest:request];
     }
