@@ -81,7 +81,7 @@ typedef NSDictionary CDVSettingsDictionary;
 @property (nonatomic) NSURL *currentURL;
 
 - (void)close;
-- (void)navigateTo:(NSURL *)url;
+- (void)navigateTo:(NSURL *)url headers:(NSString *)headers;
 - (void)showLocationBar:(BOOL)show;
 - (void)showToolBar:(BOOL)show atPosition:(NSString *)toolbarPosition;
 - (void)setCloseButtonTitle:(NSString *)title withColor:(NSString *)colorString atIndex:(int)buttonIndex;

@@ -393,9 +393,9 @@ static UIBarButtonSystemItem CDVWKInAppBrowserCloseButtonSystemItem(void)
     });
 }
 
-- (void)openInCordovaWebView:(NSURL *)url withOptions:(NSString *)options
+- (void)openInCordovaWebView:(NSURL *)url withOptions:(NSString *)options withHeaders:(NSString*)headers
 {
-    NSURLRequest *request = [NSURLRequest requestWithURL:url];
+    NSURLRequest *request = [CDVInAppBrowserOptions createRequest:url headers:headers];
     // The WebView engine itself will filter for this according to <allow-navigation> policy
     // in config.xml
     [self.webViewEngine loadRequest:request];
@@ -428,7 +428,7 @@ static UIBarButtonSystemItem CDVWKInAppBrowserCloseButtonSystemItem(void)
 
     NSURL *url = [NSURL URLWithString:urlStr];
     _waitForBeforeload = NO;
-    [self.inAppBrowserViewController navigateTo:url];
+    [self.inAppBrowserViewController navigateTo:url headers:nil];
 }
 
 - (BOOL)isBeforeloadEnabled
