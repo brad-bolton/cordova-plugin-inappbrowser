@@ -174,6 +174,9 @@ public class InAppBrowser extends CordovaPlugin {
             final String target = t;
             final HashMap<String, String> features = parseFeature(args.optString(2));
 
+            // Header support
+            final HashMap<String, String> headers = parseHeaders(args.optString(3));
+
             LOG.d(LOG_TAG, "target = " + target);
 
             this.cordova.getActivity().runOnUiThread(new Runnable() {
@@ -239,7 +242,7 @@ public class InAppBrowser extends CordovaPlugin {
                         else {
                             LOG.d(LOG_TAG, "loading in InAppBrowser");
                             InAppBrowser.this.callbackContext = callbackContext;
-                            result = showWebPage(url, features);
+                            result = showWebPage(url, features, headers);
                         }
                     }
                     // SYSTEM
@@ -251,7 +254,7 @@ public class InAppBrowser extends CordovaPlugin {
                     else {
                         LOG.d(LOG_TAG, "in blank");
                         InAppBrowser.this.callbackContext = callbackContext;
-                        result = showWebPage(url, features);
+                        result = showWebPage(url, features, headers);
                     }
 
                     PluginResult pluginResult = new PluginResult(PluginResult.Status.OK, result);
@@ -453,7 +456,30 @@ public class InAppBrowser extends CordovaPlugin {
             return map;
         }
     }
-
+     /**
+     * Put the headers string into a hash map
+     *
+     * @param headersString string of headers comma separated (key=value)
+     * @return map of headers
+     */
+    private HashMap<String, String> parseHeaders(String headersString) {
+        if (headersString.equals(NULL)) {
+            return null;
+        } else {
+            HashMap<String, String> map = new HashMap<String, String>();
+            StringTokenizer headers = new StringTokenizer(headersString, ",");
+            StringTokenizer header;
+            while(headers.hasMoreElements()) {
+                header = new StringTokenizer(headers.nextToken(), "=");
+                if (header.hasMoreElements()) {
+                    String key = header.nextToken().replace("@e","=").replace("@c", ",").replace("@a","@");
+                    String value = header.nextToken().replace("@e","=").replace("@c", ",").replace("@a","@");
+                    map.put(key, value);
+                }
+            }
+            return map;
+        }
+    }
     /**
      * Display a new browser with the specified URL.
      *
@@ -633,7 +659,7 @@ public class InAppBrowser extends CordovaPlugin {
      * @param url the url to load.
      * @param features jsonObject
      */
-    public String showWebPage(final String url, HashMap<String, String> features) {
+    public String showWebPage(final String url, HashMap<String, String> features, final HashMap<String, String> headers) {
         // Determine if we should hide the location bar.
         showLocationBar = true;
         enableZoom = true;
