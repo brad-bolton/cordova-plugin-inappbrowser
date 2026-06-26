@@ -1215,14 +1215,7 @@ BOOL isExiting = NO;
     if ([url.scheme isEqualToString:@"file"]) {
         [self.webView loadFileURL:url allowingReadAccessToURL:url];
     } else {
-        NSArray* pairs = [headers componentsSeparatedByString:@","];
-         for (NSString* pair in pairs) {
-        NSArray* keyvalue = [pair componentsSeparatedByString:@":"];
-        NSString* key = [[keyvalue objectAtIndex:0] lowercaseString];
-        NSString* value = [keyvalue objectAtIndex:1];
-        [request setValue:value forHTTPHeaderField:key];
-    }
-        NSURLRequest *request = [NSURLRequest requestWithURL:url];
+        NSMutableURLRequest* request = [CDVInAppBrowserOptions createRequest:url headers:headers]; 
         [self.webView loadRequest:request];
     }
 }
